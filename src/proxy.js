@@ -17,12 +17,12 @@ module.exports = {
         // Start proxy
         var proxy = httpProxy.createProxyServer({}),        
             server = http.createServer(function(req, res) {
-
+                // Get POST body
                 var dataReq = new Buffer('');
                 req.on('data', function (data) {
                     dataReq = Buffer.concat([dataReq, data]);
                 });
-
+                // Save post body
                 req.on('end', function () {
                     try {
                         req.extraQuery = JSON.parse(dataReq.toString());
@@ -32,7 +32,7 @@ module.exports = {
                 }).on('error', (e) => {
                     console.error(e.message);
                 });
-
+                // Set proxy configuration
                 proxy.web(req, res, config.proxyOptions);
             }).listen(config.proxyPort, function() {
                 console.log('Elastic proxy started -> port: ' + config.proxyPort);
@@ -54,7 +54,7 @@ module.exports = {
             });
             proxyRes.on('end', function () {
                 try {
-                    // Elastic join
+                    // Elastic override query
                     if (req.extraQuery && req.extraQuery.query) {
                         // Main query response and new response
                         var mainQuery = JSON.parse(body.toString()),
@@ -132,6 +132,5 @@ module.exports = {
                 }
             });
         });
-
     }
 }
