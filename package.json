@@ -1,0 +1,13 @@
+{
+  "name": "node-proxy",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "dotenv": "^6.0.0",
+    "http-proxy": "^1.17.0",
+    "xmlhttprequest": "^1.8.0"
+  },
+  "scripts": {
+    "start": "node start.js"
+  }
+}
