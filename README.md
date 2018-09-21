@@ -16,8 +16,6 @@ npm start
 
 ## Docker
 
-Direct
-
 ```
 docker run -tdi --name elastic-proxy -p 8008:8008 -v "$PWD":/usr/src/app -w /usr/src/app node:8 sh docker-start.sh
 ```
