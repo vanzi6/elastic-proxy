@@ -1,14 +1,16 @@
-const { createLogger, transports, format } = require('winston');
-
+// Config
 const configLogger = require('./config/logger');
 
+// Imports
+const { createLogger, transports, format } = require('winston');
 const { combine, timestamp, label, printf } = format;
- 
+
+// Format log input
 const myFormat = printf(info => {
     return info.timestamp + (info.ip ? ' | ' + info.ip : '') + ' | ' + info.level + ': ' + info.message + ' ' + (info.status ? info.status : '');
 });
 
-// instantiate a new Winston Logger with the settings defined above
+// Instantiate a new Winston Logger with the settings from config
 var logger = createLogger({
     format: combine(
         timestamp(),
