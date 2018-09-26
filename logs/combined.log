@@ -1,4 +1,0 @@
-2018-09-26T09:28:09.637Z | info: Elastic proxy started Start
-2018-09-26T09:28:14.064Z | ::1 | info: Connection open 
-2018-09-26T09:28:14.157Z | ::1 | info: Making extra queries 
-2018-09-26T09:28:14.652Z | error: Cannot read property 'hits' of null 500
