@@ -115,6 +115,14 @@ module.exports = {
                                 // Set exclusions by elastic _id
                                 var excludeById = [];
                                 var len = Object.keys(readyResponse.hits.hits).length;
+                                // If no more extra info is needed
+                                if (len >= size) {
+                                    logger.info({
+                                        ip: req.connection.remoteAddress,
+                                        message: 'Stoping extra queryies loop! Requested size: ' + size + ', current size: ' + len
+                                    });
+                                    break;
+                                };
                                 for (var i = 0; i < len; i++) {
                                     excludeById.push(readyResponse.hits.hits[i]._id);
                                 }
@@ -123,13 +131,24 @@ module.exports = {
                             // Choose query fields
                             queryObj.query.bool.must.simple_query_string.fields = [element];
                             xhr.send(JSON.stringify(queryObj));
+                            logger.info({
+                                ip: req.connection.remoteAddress,
+                                message: `Extra queries for: [${element}]`
+                            });
                         };
                         // Pagination
-                        var len = Object.keys(readyResponse.hits.hits).length,
-                            out = [],
+                        var out = [],
                             j = 0;
+                        logger.info({
+                            ip: req.connection.remoteAddress,
+                            message: `Override pagination cut from: [${from}] to: [${size}]`
+                        });
                         for (var i = from; i < size; i++) {
                             if (!readyResponse.hits.hits[i]) {
+                                logger.info({
+                                    ip: req.connection.remoteAddress,
+                                    message: `Override pagination cut stoped at: [${i}], no more elements`
+                                });
                                 break;
                             }
                             out[j++] = readyResponse.hits.hits[i];
@@ -142,19 +161,15 @@ module.exports = {
                         readyResponse.hits.total = mainQuery.hits.total;
                         // Form response
                         var resString = JSON.stringify(readyResponse);
-                        const t = Buffer.from(resString);
-                        proxyRes.headers['content-length'] = t.length;
+                        const extraQuery = Buffer.from(resString);
+                        proxyRes.headers['content-length'] = extraQuery.length;
                         res.writeHead(200, proxyRes.headers);
-                        res.end(t.toString());
-                        logger.info({
-                            ip: req.connection.remoteAddress,
-                            message: 'Responed successfully',
-                            status: 200
-                        });
+                        res.end(extraQuery.toString());
+                    } else {
+                        // No query response
+                        res.writeHead(200, proxyRes.headers);
+                        res.end(body.toString());
                     }
-                    // No query response
-                    res.writeHead(200, proxyRes.headers);
-                    res.end(body.toString());
                     logger.info({
                         ip: req.connection.remoteAddress,
                         message: 'Responed successfully',
