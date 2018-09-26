@@ -20,6 +20,7 @@ var logger = createLogger({
     exceptionHandlers: [
         new transports.File(configLogger.exceptions)
     ],
+    silent: configLogger.silent,
     exitOnError: false, // do not exit on handled exceptions
 });
 
