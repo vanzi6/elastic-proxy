@@ -6,6 +6,7 @@
 npm install
 cp .env.example .env
 edit .env
+mkdir logs
 ```
 
 ## Node start
