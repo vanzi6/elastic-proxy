@@ -1,10 +1,10 @@
 module.exports = {
     start: function () {
         // Config
-        var config = require('./config');
+        var configProxy = require('./config/proxy');
 
         // Config check
-        if (!config.proxyPort || !config.elasticUrl) {
+        if (!configProxy.proxyPort || !configProxy.elasticUrl) {
             console.log('Fill proxy port number, elasticsearch url beafore start');
             return;
         }
@@ -12,11 +12,16 @@ module.exports = {
         // Imports
         var http = require('http'),
             httpProxy = require('http-proxy'),
-            XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+            XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest
+            logger = require('./logger');
 
         // Start proxy
         var proxy = httpProxy.createProxyServer({}),        
             server = http.createServer(function(req, res) {
+                logger.info({
+                    ip: req.connection.remoteAddress,
+                    message: 'Connection open'
+                });
                 // Get POST body
                 var dataReq = new Buffer('');
                 req.on('data', function (data) {
@@ -27,23 +32,37 @@ module.exports = {
                     try {
                         req.extraQuery = JSON.parse(dataReq.toString());
                     } catch (e) {
-                        console.error(e.message);
+                        logger.error({
+                            message: e.message,
+                            status: 500
+                        });
                     }
                 }).on('error', (e) => {
-                    console.error(e.message);
+                    logger.error({
+                        message: e.message,
+                        status: 500
+                    });
                 });
                 // Set proxy configuration
-                proxy.web(req, res, config.proxyOptions);
-            }).listen(config.proxyPort, function() {
-                console.log('Elastic proxy started -> port: ' + config.proxyPort);
+                proxy.web(req, res, configProxy.proxyOptions);
+            }).listen(configProxy.proxyPort, function() {
+                logger.info({
+                    message: 'Elastic proxy started',
+                    status: 'Start'
+                });
             });
 
         // Listen for the `error` event on proxy.
         proxy.on('error', function (err, req, res) {
+            var message = 'Elastic not responding.' + err;
+            logger.error({
+                message: message,
+                status: 500
+            });
             res.writeHead(500, {
                 'Content-Type': 'text/plain'
             });
-            res.end('Elastic not responding.' + err);
+            res.end(message);
         });
 
         // Restream parsed body before proxying back
@@ -56,6 +75,10 @@ module.exports = {
                 try {
                     // Elastic override query
                     if (req.extraQuery && req.extraQuery.query) {
+                        logger.info({
+                            ip: req.connection.remoteAddress,
+                            message: 'Making extra queries'
+                        });
                         // Main query response and new response
                         var mainQuery = JSON.parse(body.toString()),
                             readyResponse = null;
@@ -75,7 +98,7 @@ module.exports = {
                         for (var element of queryObj.query.bool.must.simple_query_string.fields) {
                             var xhr = new XMLHttpRequest();
                             // Wait for response
-                            xhr.open('POST', config.elasticUrl, false);
+                            xhr.open('POST', configProxy.elasticUrl, false);
                             xhr.onreadystatechange = function() {
                                 if (xhr.readyState == 4 && xhr.status == 200) {
                                     // Make new response body
@@ -123,12 +146,25 @@ module.exports = {
                         proxyRes.headers['content-length'] = t.length;
                         res.writeHead(200, proxyRes.headers);
                         res.end(t.toString());
+                        logger.info({
+                            ip: req.connection.remoteAddress,
+                            message: 'Responed successfully',
+                            status: 200
+                        });
                     }
                     // No query response
                     res.writeHead(200, proxyRes.headers);
                     res.end(body.toString());
+                    logger.info({
+                        ip: req.connection.remoteAddress,
+                        message: 'Responed successfully',
+                        status: 200
+                    });
                 } catch (e) {
-                    console.error(e.message);
+                    logger.error({
+                        message: e.message,
+                        status: 500
+                    });
                 }
             });
         });

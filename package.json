@@ -5,6 +5,7 @@
   "dependencies": {
     "dotenv": "^6.0.0",
     "http-proxy": "^1.17.0",
+    "winston": "^3.1.0",
     "xmlhttprequest": "^1.8.0"
   },
   "scripts": {

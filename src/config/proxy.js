@@ -6,7 +6,7 @@ const config = {
     elasticUrl: process.env.ELASTIC_URL,
     proxyOptions: (process.env.SSL_CERTS_ENABLED === 'true' ? {
         target: process.env.ELASTIC_URL,
-        selfHandleResponse : true,
+        selfHandleResponse: true,
         ignorePath: true,
         ssl: {
             key: fs.readFileSync(process.env.SSL_KEY, process.env.SSL_ENCODING),
@@ -15,7 +15,7 @@ const config = {
     } : {
         target: process.env.ELASTIC_URL,
         changeOrigin: true,
-        selfHandleResponse : true,
+        selfHandleResponse: true,
         ignorePath: true,
     })
 }
